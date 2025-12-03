@@ -1,0 +1,15 @@
+/// Representa o perfil de um médico, estendendo o modelo User.
+model Doctor {
+  // O ID do usuário é a chave primária e estrangeira.
+  userId String @id @db.Uuid
+
+  crm       String @unique
+  specialty String
+
+  // Relações
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments   Appointment[]
+  scheduleBlocks ScheduleBlock[]
+
+  @@map("doctors")
+}

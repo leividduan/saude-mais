@@ -1,8 +1,19 @@
+enum Role {
+  ADMIN
+  DOCTOR
+  PATIENT
+}
+
 model User {
-  id       String @id @default(uuid()) @db.Uuid
-  name     String
-  email    String @unique
-  password String
+  id        String  @id @default(uuid()) @db.Uuid
+  name      String
+  email     String  @unique
+  password  String
+  role      Role    @default(PATIENT)
+  is_active Boolean @default(true)
+
+  doctor  Doctor?
+  patient Patient?
 
   @@map("users")
 }

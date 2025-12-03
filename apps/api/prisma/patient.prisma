@@ -1,0 +1,18 @@
+/// Representa o perfil de um paciente, estendendo o modelo User.
+model Patient {
+  // O ID do usuário é a chave primária e estrangeira.
+  userId String @id @db.Uuid
+
+  cpf   String  @unique
+  phone String?
+
+  // Chave estrangeira para o convênio.
+  healthInsuranceId String? @db.Uuid
+
+  // Relações
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  healthInsurance HealthInsurance?  @relation(fields: [healthInsuranceId], references: [id], onDelete: SetNull)
+  appointments    Appointment[]
+
+  @@map("patients")
+}

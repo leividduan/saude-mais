@@ -1,0 +1,26 @@
+/// Enum para os status possíveis de uma consulta.
+enum AppointmentStatus {
+  SCHEDULED // Agendada
+  CANCELED // Cancelada
+  COMPLETED // Realizada
+  ABSENT // Falta
+}
+
+/// Representa uma consulta agendada entre um médico e um paciente.
+model Appointment {
+  id String @id @default(uuid()) @db.Uuid
+
+  startTime DateTime
+  endTime   DateTime
+  status    AppointmentStatus @default(SCHEDULED)
+
+  // Chaves estrangeiras
+  doctorId  String @db.Uuid
+  patientId String @db.Uuid
+
+  // Relações
+  doctor  Doctor  @relation(fields: [doctorId], references: [userId], onDelete: Cascade)
+  patient Patient @relation(fields: [patientId], references: [userId], onDelete: Cascade)
+
+  @@map("appointments")
+}

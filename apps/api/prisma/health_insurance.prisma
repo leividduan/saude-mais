@@ -1,0 +1,10 @@
+/// Representa os convênios médicos aceitos pela clínica.
+model HealthInsurance {
+  id   String @id @default(uuid()) @db.Uuid
+  name String
+
+  // Relação: Um convênio pode ter vários pacientes.
+  patients Patient[]
+
+  @@map("health_insurances")
+}

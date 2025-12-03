@@ -1,0 +1,16 @@
+/// Representa um período de tempo em que a agenda de um médico está bloqueada.
+model ScheduleBlock {
+  id String @id @default(uuid()) @db.Uuid
+
+  startTime DateTime
+  endTime   DateTime
+  reason    String
+
+  // Chave estrangeira
+  doctorId String @db.Uuid
+
+  // Relação: Um bloqueio pertence a um médico.
+  doctor Doctor @relation(fields: [doctorId], references: [userId], onDelete: Cascade)
+
+  @@map("schedule_blocks")
+}

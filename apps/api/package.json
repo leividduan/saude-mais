@@ -1,7 +1,9 @@
 {
-  "name": "api",
+  "name": "@saude/api",
   "version": "1.0.0",
   "private": true,
+  "main": "dist/api.js",
+  "types": "dist/api.d.ts",
   "scripts": {
     "dev": "tsx src/index.ts --watch",
     "build": "tsc -p tsconfig.json",

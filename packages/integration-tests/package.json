@@ -1,0 +1,23 @@
+{
+  "name": "@saude/integration-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Testes de Integração para a API do projeto Saúde+",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/supertest": "^6.0.2",
+    "api": "workspace:*",
+    "bcryptjs": "^3.0.3",
+    "supertest": "^7.0.0",
+    "typescript": "^5.4.5",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^1.6.0"
+  }
+}

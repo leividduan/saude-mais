@@ -1,7 +1,14 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { db } from '../../../lib/db';
 
 export class ListHealthInsurancesController {
   static async handler(request: FastifyRequest, reply: FastifyReply) {
-    return reply.send({ message: 'Listar todos os convênios' });
+    const healthInsurances = await db.healthInsurance.findMany({
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    return reply.send(healthInsurances);
   }
 }

@@ -1,4 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
+import { adminMiddleware } from '../middlewares/adminMiddleware';
 import { CreatePatientController } from '../controllers/admin/patient/CreatePatientController';
 import { DeletePatientController } from '../controllers/admin/patient/DeletePatientController';
 import { ListPatientsController } from '../controllers/admin/patient/ListPatientsController';
@@ -14,6 +15,8 @@ import { UpdateHealthInsuranceController } from '../controllers/admin/health-ins
 import { AppointmentsByInsuranceController } from '../controllers/admin/report/AppointmentsByInsuranceController';
 
 export const adminRoutes: FastifyPluginAsync = async (fastify) => {
+  fastify.addHook('onRequest', adminMiddleware);
+
   // Patient CRUD
   fastify.get('/patients', ListPatientsController.handler);
   fastify.post('/patients', CreatePatientController.handler);
@@ -30,10 +33,7 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/health-insurances', ListHealthInsurancesController.handler);
   fastify.post('/health-insurances', CreateHealthInsuranceController.handler);
   fastify.put('/health-insurances/:id', UpdateHealthInsuranceController.handler);
-  fastify.delete(
-    '/health-insurances/:id',
-    DeleteHealthInsuranceController.handler
-  );
+  fastify.delete('/health-insurances/:id', DeleteHealthInsuranceController.handler);
 
   // Reports
   fastify.get(

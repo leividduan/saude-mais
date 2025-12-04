@@ -1,9 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+type UserRole = "admin" | "doctor" | "patient";
+
 interface User {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
 }
 
 interface AuthContextType {
@@ -33,28 +36,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { success: false, error: 'E-mail já cadastrado' };
     }
 
-    const newUser = { id: Date.now().toString(), name, email, password };
+    const newUser = { id: Date.now().toString(), name, email, password, role: "patient" };
     users.push(newUser);
     localStorage.setItem('clinica_users', JSON.stringify(users));
 
-    const userWithoutPassword = { id: newUser.id, name, email };
-    setUser(userWithoutPassword);
-    localStorage.setItem('clinica_user', JSON.stringify(userWithoutPassword));
+    const userToStore = { id: newUser.id, name, email, role: newUser.role };
+    setUser(userToStore);
+    localStorage.setItem('clinica_user', JSON.stringify(userToStore));
 
     return { success: true };
   };
 
   const login = async (email: string, password: string) => {
     const users = JSON.parse(localStorage.getItem('clinica_users') || '[]');
-    const user = users.find((u: any) => u.email === email && u.password === password);
+    const userFound = users.find((u: any) => u.email === email && u.password === password);
 
-    if (!user) {
+    if (!userFound) {
       return { success: false, error: 'E-mail ou senha incorretos' };
     }
+    
+    let role: UserRole = "patient";
+    if (userFound.email === "admin@example.com") {
+      role = "admin";
+    } else if (userFound.email === "doctor@example.com") {
+      role = "doctor";
+    }
 
-    const userWithoutPassword = { id: user.id, name: user.name, email: user.email };
-    setUser(userWithoutPassword);
-    localStorage.setItem('clinica_user', JSON.stringify(userWithoutPassword));
+    const userToStore = { id: userFound.id, name: userFound.name, email: userFound.email, role };
+    setUser(userToStore);
+    localStorage.setItem('clinica_user', JSON.stringify(userToStore));
 
     return { success: true };
   };

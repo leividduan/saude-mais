@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Agendar from "./pages/Agendar";
 import MinhasConsultas from "./pages/MinhasConsultas";
 import Admin from "./pages/Admin";
+import AgendaMedico from "./pages/AgendaMedico";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/agendar" element={<ProtectedRoute><Agendar /></ProtectedRoute>} />
             <Route path="/minhas-consultas" element={<ProtectedRoute><MinhasConsultas /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+            <Route path="/agenda-medico" element={<ProtectedRoute><AgendaMedico /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

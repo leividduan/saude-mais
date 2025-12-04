@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DoctorsTab } from "@/components/admin/DoctorsTab";
 import { PatientsTab } from "@/components/admin/PatientsTab";
 import { ConveniosTab } from "@/components/admin/ConveniosTab";
-import { Stethoscope, Users, Building2 } from "lucide-react";
+import { ReportsTab } from "@/components/admin/ReportsTab";
+import { Stethoscope, Users, Building2, FileText } from "lucide-react";
 
 const Admin = () => {
   return (
@@ -13,7 +14,7 @@ const Admin = () => {
         <h1 className="text-3xl font-bold text-foreground mb-8">Dashboard Administrativo</h1>
         
         <Tabs defaultValue="doctors" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="doctors" className="flex items-center gap-2">
               <Stethoscope className="h-4 w-4" />
               Médicos
@@ -25,6 +26,10 @@ const Admin = () => {
             <TabsTrigger value="convenios" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               Convênios
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Relatórios
             </TabsTrigger>
           </TabsList>
           
@@ -38,6 +43,10 @@ const Admin = () => {
           
           <TabsContent value="convenios">
             <ConveniosTab />
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <ReportsTab />
           </TabsContent>
         </Tabs>
       </main>

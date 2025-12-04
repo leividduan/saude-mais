@@ -16,27 +16,42 @@ export const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-6">
-            <NavLink
-              to="/agendar"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              activeClassName="text-primary font-medium"
-            >
-              Agendar
-            </NavLink>
-            <NavLink
-              to="/minhas-consultas"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              activeClassName="text-primary font-medium"
-            >
-              Minhas Consultas
-            </NavLink>
-            <NavLink
-              to="/admin"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              activeClassName="text-primary font-medium"
-            >
-              Administração
-            </NavLink>
+            {user && (
+              <>
+                <NavLink
+                  to="/agendar"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  activeClassName="text-primary font-medium"
+                >
+                  Agendar
+                </NavLink>
+                <NavLink
+                  to="/minhas-consultas"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  activeClassName="text-primary font-medium"
+                >
+                  Minhas Consultas
+                </NavLink>
+                {user.role === 'admin' && (
+                  <NavLink
+                    to="/admin"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    activeClassName="text-primary font-medium"
+                  >
+                    Administração
+                  </NavLink>
+                )}
+                {user.role === 'doctor' && (
+                  <NavLink
+                    to="/agenda-medico"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    activeClassName="text-primary font-medium"
+                  >
+                    Minha Agenda
+                  </NavLink>
+                )}
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-4">

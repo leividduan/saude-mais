@@ -13,7 +13,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
     "@types/supertest": "^6.0.2",
-    "api": "workspace:*",
+    "@saude/api": "workspace:*",
     "bcryptjs": "^3.0.3",
     "supertest": "^7.0.0",
     "typescript": "^5.4.5",

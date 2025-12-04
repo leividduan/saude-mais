@@ -72,15 +72,15 @@ importers:
 
   packages/integration-tests:
     devDependencies:
+      '@saude/api':
+        specifier: workspace:*
+        version: link:../../apps/api
       '@types/bcryptjs':
         specifier: ^3.0.0
         version: 3.0.0
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
-      api:
-        specifier: workspace:*
-        version: link:../../apps/api
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3

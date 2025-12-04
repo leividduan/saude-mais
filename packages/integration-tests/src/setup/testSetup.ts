@@ -1,8 +1,6 @@
 import { beforeAll } from 'vitest'
-import * as dbModule from '@/lib/db'
+import { db } from '@saude/api/lib/db'
 import { hash } from 'bcryptjs'
-
-const { db } = dbModule
 
 beforeAll(async () => {
   console.log('Seeding database for tests...')

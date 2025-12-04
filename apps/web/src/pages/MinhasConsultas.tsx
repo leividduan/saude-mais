@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, User, AlertTriangle } from "lucide-react";
-import { api } from "@/services/dataService";
+import api from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from '@tanstack/react-query';
 
@@ -21,7 +21,7 @@ interface Appointment {
 }
 
 const getAppointments = async (): Promise<Appointment[]> => {
-  const response = await api.get('/patient/appointments');
+  const response = await api.get('/patients/appointments');
   return response.data;
 };
 

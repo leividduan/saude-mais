@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +7,10 @@ import { SpecialtyCard } from './SpecialtyCard';
 import { DoctorCard } from './DoctorCard';
 import { Check, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import api from '@/services/api';
 import { specialties } from '@/data/specialties';
+import { useDoctorsQuery } from '@/hooks/queries/useDoctorsQuery';
+import { useDoctorAvailabilityQuery } from '@/hooks/queries/useDoctorAvailabilityQuery';
+import { useCreateAppointmentMutation } from '@/hooks/mutations/useCreateAppointmentMutation';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -27,24 +30,13 @@ export const AppointmentWizard = () => {
     time: '',
   });
   const { toast } = useToast();
-  const [doctors, setDoctors] = useState<any[]>([]);
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [availableDates, setAvailableDates] = useState<any[]>([]);
 
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const response = await api.get('/doctors');
-        setDoctors(response.data);
-      } catch (error) {
-        toast({
-          title: 'Erro ao buscar médicos',
-          description: 'Não foi possível carregar a lista de médicos.',
-        });
-      }
-    };
-    fetchDoctors();
-  }, [toast]);
+  const { data: doctors = [] } = useDoctorsQuery();
+  const { data: availableTimeSlots = [] } = useDoctorAvailabilityQuery(
+    appointmentData.doctor?.id
+  );
+  const createAppointmentMutation = useCreateAppointmentMutation();
 
   useEffect(() => {
     const getDates = () => {
@@ -63,28 +55,9 @@ export const AppointmentWizard = () => {
     getDates();
   }, []);
 
-  useEffect(() => {
-    if (appointmentData.doctor) {
-      const fetchAvailability = async () => {
-        try {
-          const response = await api.get(
-            `/doctors/${appointmentData.doctor.id}/availability`
-          );
-          setAvailableTimeSlots(response.data);
-        } catch (error) {
-          toast({
-            title: 'Erro ao buscar horários',
-            description: 'Não foi possível carregar os horários do médico.',
-          });
-        }
-      };
-      fetchAvailability();
-    }
-  }, [appointmentData.doctor, toast]);
-
   const progressValue = (step / 4) * 100;
   const filteredDoctors = doctors.filter(
-    (d) => d.specialty === appointmentData.specialty
+    (d: any) => d.specialty === appointmentData.specialty
   );
 
   const handleNext = () => {
@@ -108,7 +81,7 @@ export const AppointmentWizard = () => {
 
       const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
 
-      await api.post('/appointments', {
+      await createAppointmentMutation.mutateAsync({
         doctorId: doctor.id,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
@@ -217,7 +190,7 @@ export const AppointmentWizard = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredDoctors.map((doctor) => (
+                {filteredDoctors.map((doctor: any) => (
                   <DoctorCard
                     key={doctor.id}
                     doctor={doctor}
@@ -275,7 +248,7 @@ export const AppointmentWizard = () => {
                 <div>
                   <h3 className="font-medium mb-3">Selecione o Horário</h3>
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                    {availableTimeSlots.map((time) => (
+                    {availableTimeSlots.map((time: any) => (
                       <Button
                         key={time}
                         variant={
@@ -375,7 +348,14 @@ export const AppointmentWizard = () => {
                 Próximo
               </Button>
             ) : (
-              <Button onClick={handleConfirm}>Confirmar Agendamento</Button>
+              <Button
+                onClick={handleConfirm}
+                disabled={createAppointmentMutation.isPending}
+              >
+                {createAppointmentMutation.isPending
+                  ? 'Confirmando...'
+                  : 'Confirmar Agendamento'}
+              </Button>
             )}
           </div>
         </CardContent>

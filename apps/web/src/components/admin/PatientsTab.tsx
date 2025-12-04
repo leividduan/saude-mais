@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,8 +6,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import api from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { usePatientsQuery } from "@/hooks/queries/usePatientsQuery";
+import { useCreatePatientMutation } from "@/hooks/mutations/useCreatePatientMutation";
+import { useUpdatePatientMutation } from "@/hooks/mutations/useUpdatePatientMutation";
+import { useDeletePatientMutation } from "@/hooks/mutations/useDeletePatientMutation";
 
 interface Patient {
   id: string;
@@ -17,24 +20,15 @@ interface Patient {
 }
 
 export const PatientsTab = () => {
-  const [patients, setPatients] = useState<Patient[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [formData, setFormData] = useState({ name: "", cpf: "", phone: "" });
   const { toast } = useToast();
 
-  const fetchPatients = async () => {
-    try {
-      const response = await api.get("/admin/patients");
-      setPatients(response.data);
-    } catch (error) {
-      toast({ title: "Erro ao buscar pacientes" });
-    }
-  };
-
-  useEffect(() => {
-    fetchPatients();
-  }, []);
+  const { data: patients = [] } = usePatientsQuery();
+  const createPatientMutation = useCreatePatientMutation();
+  const updatePatientMutation = useUpdatePatientMutation();
+  const deletePatientMutation = useDeletePatientMutation();
 
   const resetForm = () => {
     setFormData({ name: "", cpf: "", phone: "" });
@@ -46,13 +40,12 @@ export const PatientsTab = () => {
     
     try {
       if (editingPatient) {
-        await api.put(`/admin/patients/${editingPatient.id}`, formData);
+        await updatePatientMutation.mutateAsync({ id: editingPatient.id, ...formData });
         toast({ title: "Paciente atualizado com sucesso!" });
       } else {
-        await api.post("/admin/patients", formData);
+        await createPatientMutation.mutateAsync(formData);
         toast({ title: "Paciente cadastrado com sucesso!" });
       }
-      fetchPatients();
       setIsOpen(false);
       resetForm();
     } catch (error) {
@@ -68,8 +61,7 @@ export const PatientsTab = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await api.delete(`/admin/patients/${id}`);
-      fetchPatients();
+      await deletePatientMutation.mutateAsync(id);
       toast({ title: "Paciente removido com sucesso!" });
     } catch (error) {
       toast({ title: "Erro ao remover paciente" });
@@ -118,7 +110,7 @@ export const PatientsTab = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {patients.map((patient) => (
+            {patients.map((patient: Patient) => (
               <TableRow key={patient.id}>
                 <TableCell className="font-medium">{patient.name}</TableCell>
                 <TableCell>{patient.cpf}</TableCell>

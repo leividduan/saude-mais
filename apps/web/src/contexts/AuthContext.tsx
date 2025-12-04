@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { api } from '../services/dataService';
+import api from '@/services/api';
 
 type UserRole = "admin" | "doctor" | "patient";
 
@@ -24,8 +24,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('clinica_token');
-    const storedUser = localStorage.getItem('clinica_user');
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
 
     if (token && storedUser) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -48,8 +48,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const { token, ...userData } = data;
 
-      localStorage.setItem('clinica_token', token);
-      localStorage.setItem('clinica_user', JSON.stringify(userData));
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       setUser(userData);
@@ -62,8 +62,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('clinica_user');
-    localStorage.removeItem('clinica_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     delete api.defaults.headers.common['Authorization'];
   };
 

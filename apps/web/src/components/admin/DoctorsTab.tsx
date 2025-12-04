@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,8 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { specialties } from "@/data/specialties";
-import api from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminDoctorsQuery } from "@/hooks/queries/useAdminDoctorsQuery";
+import { useCreateDoctorMutation } from "@/hooks/mutations/useCreateDoctorMutation";
+import { useUpdateDoctorMutation } from "@/hooks/mutations/useUpdateDoctorMutation";
+import { useDeleteDoctorMutation } from "@/hooks/mutations/useDeleteDoctorMutation";
 
 interface Doctor {
   id: string;
@@ -19,24 +22,15 @@ interface Doctor {
 }
 
 export const DoctorsTab = () => {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
   const [formData, setFormData] = useState({ name: "", crm: "", specialty: "" });
   const { toast } = useToast();
 
-  const fetchDoctors = async () => {
-    try {
-      const response = await api.get("/admin/doctors");
-      setDoctors(response.data);
-    } catch (error) {
-      toast({ title: "Erro ao buscar médicos" });
-    }
-  };
-
-  useEffect(() => {
-    fetchDoctors();
-  }, []);
+  const { data: doctors = [] } = useAdminDoctorsQuery();
+  const createDoctorMutation = useCreateDoctorMutation();
+  const updateDoctorMutation = useUpdateDoctorMutation();
+  const deleteDoctorMutation = useDeleteDoctorMutation();
 
   const resetForm = () => {
     setFormData({ name: "", crm: "", specialty: "" });
@@ -48,13 +42,12 @@ export const DoctorsTab = () => {
     
     try {
       if (editingDoctor) {
-        await api.put(`/admin/doctors/${editingDoctor.id}`, formData);
+        await updateDoctorMutation.mutateAsync({ id: editingDoctor.id, ...formData });
         toast({ title: "Médico atualizado com sucesso!" });
       } else {
-        await api.post("/admin/doctors", formData);
+        await createDoctorMutation.mutateAsync(formData);
         toast({ title: "Médico cadastrado com sucesso!" });
       }
-      fetchDoctors();
       setIsOpen(false);
       resetForm();
     } catch (error) {
@@ -74,8 +67,7 @@ export const DoctorsTab = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await api.delete(`/admin/doctors/${id}`);
-      fetchDoctors();
+      await deleteDoctorMutation.mutateAsync(id);
       toast({ title: "Médico removido com sucesso!" });
     } catch (error) {
       toast({ title: "Erro ao remover médico" });
@@ -135,7 +127,7 @@ export const DoctorsTab = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {doctors.map((doctor) => (
+            {doctors.map((doctor: Doctor) => (
               <TableRow key={doctor.id}>
                 <TableCell className="font-medium">{doctor.name}</TableCell>
                 <TableCell>{doctor.crm}</TableCell>

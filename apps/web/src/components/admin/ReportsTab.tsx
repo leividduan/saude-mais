@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import api from "@/services/api";
 import { FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useHealthInsurancesQuery } from "@/hooks/queries/useHealthInsurancesQuery";
+import { useAppointmentsByInsuranceReportQuery } from "@/hooks/queries/useAppointmentsByInsuranceReportQuery";
 
 interface Convenio {
   id: string;
@@ -14,40 +15,23 @@ interface Convenio {
 }
 
 export const ReportsTab = () => {
-  const [convenios, setConvenios] = useState<Convenio[]>([]);
   const [selectedConvenio, setSelectedConvenio] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchConvenios = async () => {
-      try {
-        const response = await api.get("/admin/health-insurances");
-        setConvenios(response.data);
-      } catch (error) {
-        toast({ title: "Erro ao buscar convênios" });
-      }
-    };
-    fetchConvenios();
-  }, [toast]);
+  const { data: convenios = [] } = useHealthInsurancesQuery();
+  const { refetch } = useAppointmentsByInsuranceReportQuery({
+    healthInsuranceId: selectedConvenio,
+    startDate,
+    endDate,
+  });
 
   const handleGenerateReport = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await api.get(
-        `/admin/reports/appointments-by-insurance`,
-        {
-          params: {
-            healthInsuranceId: selectedConvenio,
-            startDate,
-            endDate,
-          },
-          responseType: "blob",
-        }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const { data } = await refetch();
+      const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", "relatorio.pdf");
@@ -72,7 +56,7 @@ export const ReportsTab = () => {
                 <SelectValue placeholder="Selecione um convênio" />
               </SelectTrigger>
               <SelectContent>
-                {convenios.map((c) => (
+                {convenios.map((c: Convenio) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
                   </SelectItem>

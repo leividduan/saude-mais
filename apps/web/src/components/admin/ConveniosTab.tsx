@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,8 +6,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import api from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { useHealthInsurancesQuery } from "@/hooks/queries/useHealthInsurancesQuery";
+import { useCreateHealthInsuranceMutation } from "@/hooks/mutations/useCreateHealthInsuranceMutation";
+import { useUpdateHealthInsuranceMutation } from "@/hooks/mutations/useUpdateHealthInsuranceMutation";
+import { useDeleteHealthInsuranceMutation } from "@/hooks/mutations/useDeleteHealthInsuranceMutation";
 
 interface Convenio {
   id: string;
@@ -15,24 +18,15 @@ interface Convenio {
 }
 
 export const ConveniosTab = () => {
-  const [convenios, setConvenios] = useState<Convenio[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingConvenio, setEditingConvenio] = useState<Convenio | null>(null);
   const [formData, setFormData] = useState({ name: "" });
   const { toast } = useToast();
 
-  const fetchConvenios = async () => {
-    try {
-      const response = await api.get("/admin/health-insurances");
-      setConvenios(response.data);
-    } catch (error) {
-      toast({ title: "Erro ao buscar convênios" });
-    }
-  };
-
-  useEffect(() => {
-    fetchConvenios();
-  }, []);
+  const { data: convenios = [] } = useHealthInsurancesQuery();
+  const createHealthInsuranceMutation = useCreateHealthInsuranceMutation();
+  const updateHealthInsuranceMutation = useUpdateHealthInsuranceMutation();
+  const deleteHealthInsuranceMutation = useDeleteHealthInsuranceMutation();
 
   const resetForm = () => {
     setFormData({ name: "" });
@@ -44,13 +38,12 @@ export const ConveniosTab = () => {
     
     try {
       if (editingConvenio) {
-        await api.put(`/admin/health-insurances/${editingConvenio.id}`, formData);
+        await updateHealthInsuranceMutation.mutateAsync({ id: editingConvenio.id, ...formData });
         toast({ title: "Convênio atualizado com sucesso!" });
       } else {
-        await api.post("/admin/health-insurances", formData);
+        await createHealthInsuranceMutation.mutateAsync(formData);
         toast({ title: "Convênio cadastrado com sucesso!" });
       }
-      fetchConvenios();
       setIsOpen(false);
       resetForm();
     } catch (error) {
@@ -66,8 +59,7 @@ export const ConveniosTab = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await api.delete(`/admin/health-insurances/${id}`);
-      fetchConvenios();
+      await deleteHealthInsuranceMutation.mutateAsync(id);
       toast({ title: "Convênio removido com sucesso!" });
     } catch (error) {
       toast({ title: "Erro ao remover convênio" });
@@ -106,7 +98,7 @@ export const ConveniosTab = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {convenios.map((convenio) => (
+            {convenios.map((convenio: Convenio) => (
               <TableRow key={convenio.id}>
                 <TableCell className="font-medium">{convenio.name}</TableCell>
                 <TableCell className="text-right space-x-2">

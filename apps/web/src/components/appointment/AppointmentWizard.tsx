@@ -75,10 +75,9 @@ export const AppointmentWizard = () => {
   const handleConfirm = async () => {
     try {
       const { doctor, date, time } = appointmentData;
-      const [hour, minute] = time.split(':');
-      const startTime = new Date(date);
-      startTime.setHours(parseInt(hour, 10), parseInt(minute, 10));
-
+      const [year, month, day] = date.split('-').map(Number);
+      const [hour, minute] = time.split(':').map(Number);
+      const startTime = new Date(year, month - 1, day, hour, minute);
       const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
 
       await createAppointmentMutation.mutateAsync({

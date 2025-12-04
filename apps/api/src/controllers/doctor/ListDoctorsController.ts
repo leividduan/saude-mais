@@ -14,7 +14,7 @@ export class ListDoctorsController {
     });
 
     const formattedDoctors = doctors.map((doctor) => ({
-      id: doctor.id,
+      id: doctor.userId,
       name: doctor.user.name,
       crm: doctor.crm,
       specialty: doctor.specialty,

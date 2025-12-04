@@ -27,7 +27,7 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
   ) => {
     const { user } = useAuth();
 
-    if (roles && !roles.includes(user?.role as UserRole)) {
+    if (roles && !roles.includes(user?.role.toLowerCase() as UserRole)) {
       return null;
     }
 

@@ -11,17 +11,15 @@ import { useQuery } from '@tanstack/react-query';
 interface Appointment {
   id: string;
   doctor: {
-    user: {
       name: string;
-    },
     specialty: string;
   };
-  date: string;
+  startTime: string;
   status: string;
 }
 
 const getAppointments = async (): Promise<Appointment[]> => {
-  const response = await api.get('/patients/appointments');
+  const response = await api.get('/patients/me/appointments');
   return response.data;
 };
 
@@ -56,8 +54,8 @@ const MinhasConsultas = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
-      day: date.toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
-      time: date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }),
+      day: date.toLocaleDateString('pt-BR'),
+      time: date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     };
   }
 
@@ -107,13 +105,13 @@ const MinhasConsultas = () => {
               )}
 
               {!isLoading && !isError && appointments?.map((appointment) => {
-                const { day, time } = formatDate(appointment.date);
+                const { day, time } = formatDate(appointment.startTime);
                 return (
                   <Card key={appointment.id} className="shadow-card hover:shadow-card-hover transition-all-smooth">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">
-                          <CardTitle className="text-xl">{appointment.doctor.user.name}</CardTitle>
+                          <CardTitle className="text-xl">{appointment.doctor.name}</CardTitle>
                           <p className="text-muted-foreground">{appointment.doctor.specialty}</p>
                         </div>
                         <Badge className={getStatusColor(appointment.status)}>

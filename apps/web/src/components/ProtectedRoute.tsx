@@ -15,7 +15,7 @@ export const ProtectedRoute = ({
     return <Navigate to="/" replace />;
   }
 
-  if (roles && !roles.includes(user?.role as UserRole)) {
+  if (roles && !roles.includes(user?.role.toLowerCase() as UserRole)) {
     return <Navigate to="/" replace />;
   }
 

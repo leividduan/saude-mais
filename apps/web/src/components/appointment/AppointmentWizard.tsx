@@ -1,18 +1,19 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { SpecialtyCard } from "./SpecialtyCard";
-import { DoctorCard } from "./DoctorCard";
-import { specialties, doctors, generateAvailableDates, generateTimeSlots } from "@/data/mockData";
-import { Check, ChevronLeft } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { SpecialtyCard } from './SpecialtyCard';
+import { DoctorCard } from './DoctorCard';
+import { Check, ChevronLeft } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import api from '@/services/api';
+import { specialties } from '@/data/specialties';
 
 type Step = 1 | 2 | 3 | 4;
 
 interface AppointmentData {
   specialty: string;
-  doctor: string;
+  doctor: any;
   date: string;
   time: string;
 }
@@ -20,17 +21,71 @@ interface AppointmentData {
 export const AppointmentWizard = () => {
   const [step, setStep] = useState<Step>(1);
   const [appointmentData, setAppointmentData] = useState<AppointmentData>({
-    specialty: "",
-    doctor: "",
-    date: "",
-    time: "",
+    specialty: '',
+    doctor: null,
+    date: '',
+    time: '',
   });
   const { toast } = useToast();
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [availableDates, setAvailableDates] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const response = await api.get('/doctors');
+        setDoctors(response.data);
+      } catch (error) {
+        toast({
+          title: 'Erro ao buscar médicos',
+          description: 'Não foi possível carregar a lista de médicos.',
+        });
+      }
+    };
+    fetchDoctors();
+  }, [toast]);
+
+  useEffect(() => {
+    const getDates = () => {
+      const dates = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+        dates.push({
+          date: date.toISOString().split('T')[0],
+          dayName: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
+          dayNumber: date.getDate(),
+        });
+      }
+      setAvailableDates(dates);
+    };
+    getDates();
+  }, []);
+
+  useEffect(() => {
+    if (appointmentData.doctor) {
+      const fetchAvailability = async () => {
+        try {
+          const response = await api.get(
+            `/doctors/${appointmentData.doctor.id}/availability`
+          );
+          setAvailableTimeSlots(response.data);
+        } catch (error) {
+          toast({
+            title: 'Erro ao buscar horários',
+            description: 'Não foi possível carregar os horários do médico.',
+          });
+        }
+      };
+      fetchAvailability();
+    }
+  }, [appointmentData.doctor, toast]);
 
   const progressValue = (step / 4) * 100;
-  const availableDates = generateAvailableDates();
-  const availableTimeSlots = generateTimeSlots();
-  const filteredDoctors = doctors.filter((d) => d.specialty === appointmentData.specialty);
+  const filteredDoctors = doctors.filter(
+    (d) => d.specialty === appointmentData.specialty
+  );
 
   const handleNext = () => {
     if (step < 4) {
@@ -44,29 +99,50 @@ export const AppointmentWizard = () => {
     }
   };
 
-  const handleConfirm = () => {
-    toast({
-      title: "Consulta Agendada! ✓",
-      description: "Seu agendamento foi confirmado com sucesso.",
-    });
-    // Reset wizard
-    setStep(1);
-    setAppointmentData({
-      specialty: "",
-      doctor: "",
-      date: "",
-      time: "",
-    });
+  const handleConfirm = async () => {
+    try {
+      const { doctor, date, time } = appointmentData;
+      const [hour, minute] = time.split(':');
+      const startTime = new Date(date);
+      startTime.setHours(parseInt(hour, 10), parseInt(minute, 10));
+
+      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+
+      await api.post('/appointments', {
+        doctorId: doctor.id,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+      });
+
+      toast({
+        title: 'Consulta Agendada! ✓',
+        description: 'Seu agendamento foi confirmado com sucesso.',
+      });
+      // Reset wizard
+      setStep(1);
+      setAppointmentData({
+        specialty: '',
+        doctor: null,
+        date: '',
+        time: '',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao agendar consulta',
+        description:
+          'Não foi possível agendar sua consulta. Tente novamente.',
+      });
+    }
   };
 
   const canProceed = () => {
     switch (step) {
       case 1:
-        return appointmentData.specialty !== "";
+        return appointmentData.specialty !== '';
       case 2:
-        return appointmentData.doctor !== "";
+        return appointmentData.doctor !== null;
       case 3:
-        return appointmentData.date !== "" && appointmentData.time !== "";
+        return appointmentData.date !== '' && appointmentData.time !== '';
       case 4:
         return true;
       default:
@@ -74,9 +150,12 @@ export const AppointmentWizard = () => {
     }
   };
 
-  const selectedDoctor = doctors.find((d) => d.id === appointmentData.doctor);
-  const selectedSpecialty = specialties.find((s) => s.id === appointmentData.specialty);
-  const selectedDate = availableDates.find((d) => d.date === appointmentData.date);
+  const selectedSpecialty = specialties.find(
+    (s) => s.id === appointmentData.specialty
+  );
+  const selectedDate = availableDates.find(
+    (d) => d.date === appointmentData.date
+  );
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -98,7 +177,9 @@ export const AppointmentWizard = () => {
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-semibold mb-2">Escolha a Especialidade</h2>
+                <h2 className="text-xl font-semibold mb-2">
+                  Escolha a Especialidade
+                </h2>
                 <p className="text-muted-foreground">
                   Selecione a especialidade médica que você precisa
                 </p>
@@ -112,7 +193,10 @@ export const AppointmentWizard = () => {
                     icon={specialty.icon}
                     selected={appointmentData.specialty === specialty.id}
                     onClick={() =>
-                      setAppointmentData({ ...appointmentData, specialty: specialty.id })
+                      setAppointmentData({
+                        ...appointmentData,
+                        specialty: specialty.id,
+                      })
                     }
                   />
                 ))}
@@ -124,7 +208,9 @@ export const AppointmentWizard = () => {
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-semibold mb-2">Escolha o Médico</h2>
+                <h2 className="text-xl font-semibold mb-2">
+                  Escolha o Médico
+                </h2>
                 <p className="text-muted-foreground">
                   Selecione o profissional de sua preferência
                 </p>
@@ -135,9 +221,9 @@ export const AppointmentWizard = () => {
                   <DoctorCard
                     key={doctor.id}
                     doctor={doctor}
-                    selected={appointmentData.doctor === doctor.id}
+                    selected={appointmentData.doctor?.id === doctor.id}
                     onClick={() =>
-                      setAppointmentData({ ...appointmentData, doctor: doctor.id })
+                      setAppointmentData({ ...appointmentData, doctor })
                     }
                   />
                 ))}
@@ -162,14 +248,23 @@ export const AppointmentWizard = () => {
                   {availableDates.map((dateInfo) => (
                     <Button
                       key={dateInfo.date}
-                      variant={appointmentData.date === dateInfo.date ? "default" : "outline"}
+                      variant={
+                        appointmentData.date === dateInfo.date
+                          ? 'default'
+                          : 'outline'
+                      }
                       className="flex-shrink-0 flex flex-col h-auto py-3 px-4"
                       onClick={() =>
-                        setAppointmentData({ ...appointmentData, date: dateInfo.date })
+                        setAppointmentData({
+                          ...appointmentData,
+                          date: dateInfo.date,
+                        })
                       }
                     >
                       <span className="text-xs">{dateInfo.dayName}</span>
-                      <span className="text-lg font-bold">{dateInfo.dayNumber}</span>
+                      <span className="text-lg font-bold">
+                        {dateInfo.dayNumber}
+                      </span>
                     </Button>
                   ))}
                 </div>
@@ -183,7 +278,9 @@ export const AppointmentWizard = () => {
                     {availableTimeSlots.map((time) => (
                       <Button
                         key={time}
-                        variant={appointmentData.time === time ? "default" : "outline"}
+                        variant={
+                          appointmentData.time === time ? 'default' : 'outline'
+                        }
                         onClick={() =>
                           setAppointmentData({ ...appointmentData, time })
                         }
@@ -201,7 +298,9 @@ export const AppointmentWizard = () => {
           {step === 4 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-semibold mb-2">Confirme seu Agendamento</h2>
+                <h2 className="text-xl font-semibold mb-2">
+                  Confirme seu Agendamento
+                </h2>
                 <p className="text-muted-foreground">
                   Revise os dados antes de confirmar
                 </p>
@@ -215,7 +314,9 @@ export const AppointmentWizard = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Médico</p>
-                      <p className="font-semibold">{selectedDoctor?.name}</p>
+                      <p className="font-semibold">
+                        {appointmentData.doctor?.name}
+                      </p>
                     </div>
                   </div>
 
@@ -224,9 +325,11 @@ export const AppointmentWizard = () => {
                       <Check className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Especialidade</p>
+                      <p className="text-sm text-muted-foreground">
+                        Especialidade
+                      </p>
                       <p className="font-semibold">{selectedSpecialty?.name}</p>
-                    </div>
+.                    </div>
                   </div>
 
                   <div className="flex items-center gap-3">

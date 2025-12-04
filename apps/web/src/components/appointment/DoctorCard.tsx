@@ -1,7 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
-import { Doctor } from "@/data/mockData";
+
+interface Doctor {
+  id: string;
+  name: string;
+  crm: string;
+  specialty: string;
+  avatarUrl?: string;
+  experience?: string;
+  rating?: number;
+}
 
 interface DoctorCardProps {
   doctor: Doctor;

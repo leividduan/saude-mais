@@ -2,64 +2,76 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { Convenio } from "@/data/mockData";
-import { getConvenios, addConvenio, updateConvenio, deleteConvenio } from "@/services/dataService";
+import api from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+
+interface Convenio {
+  id: string;
+  name: string;
+}
 
 export const ConveniosTab = () => {
   const [convenios, setConvenios] = useState<Convenio[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingConvenio, setEditingConvenio] = useState<Convenio | null>(null);
-  const [formData, setFormData] = useState({ name: "", registrationNumber: "", active: true });
+  const [formData, setFormData] = useState({ name: "" });
   const { toast } = useToast();
 
+  const fetchConvenios = async () => {
+    try {
+      const response = await api.get("/admin/health-insurances");
+      setConvenios(response.data);
+    } catch (error) {
+      toast({ title: "Erro ao buscar convênios" });
+    }
+  };
+
   useEffect(() => {
-    setConvenios(getConvenios());
+    fetchConvenios();
   }, []);
 
   const resetForm = () => {
-    setFormData({ name: "", registrationNumber: "", active: true });
+    setFormData({ name: "" });
     setEditingConvenio(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingConvenio) {
-      updateConvenio(editingConvenio.id, formData);
-      toast({ title: "Convênio atualizado com sucesso!" });
-    } else {
-      addConvenio(formData);
-      toast({ title: "Convênio cadastrado com sucesso!" });
+    try {
+      if (editingConvenio) {
+        await api.put(`/admin/health-insurances/${editingConvenio.id}`, formData);
+        toast({ title: "Convênio atualizado com sucesso!" });
+      } else {
+        await api.post("/admin/health-insurances", formData);
+        toast({ title: "Convênio cadastrado com sucesso!" });
+      }
+      fetchConvenios();
+      setIsOpen(false);
+      resetForm();
+    } catch (error) {
+      toast({ title: "Erro ao salvar convênio" });
     }
-
-    setConvenios(getConvenios());
-    setIsOpen(false);
-    resetForm();
   };
 
   const handleEdit = (convenio: Convenio) => {
     setEditingConvenio(convenio);
-    setFormData({ name: convenio.name, registrationNumber: convenio.registrationNumber, active: convenio.active });
+    setFormData({ name: convenio.name });
     setIsOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    deleteConvenio(id);
-    setConvenios(getConvenios());
-    toast({ title: "Convênio removido com sucesso!" });
-  };
-
-  const toggleActive = (convenio: Convenio) => {
-    updateConvenio(convenio.id, { active: !convenio.active });
-    setConvenios(getConvenios());
-    toast({ title: `Convênio ${convenio.active ? "desativado" : "ativado"} com sucesso!` });
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/admin/health-insurances/${id}`);
+      fetchConvenios();
+      toast({ title: "Convênio removido com sucesso!" });
+    } catch (error) {
+      toast({ title: "Erro ao remover convênio" });
+    }
   };
 
   return (
@@ -79,14 +91,6 @@ export const ConveniosTab = () => {
                 <Label htmlFor="name">Nome</Label>
                 <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="registrationNumber">Registro ANS</Label>
-                <Input id="registrationNumber" value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })} placeholder="ANS 000000" required />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="active">Ativo</Label>
-                <Switch id="active" checked={formData.active} onCheckedChange={(checked) => setFormData({ ...formData, active: checked })} />
-              </div>
               <Button type="submit" className="w-full">{editingConvenio ? "Salvar" : "Cadastrar"}</Button>
             </form>
           </DialogContent>
@@ -98,8 +102,6 @@ export const ConveniosTab = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
-              <TableHead>Registro ANS</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -107,12 +109,6 @@ export const ConveniosTab = () => {
             {convenios.map((convenio) => (
               <TableRow key={convenio.id}>
                 <TableCell className="font-medium">{convenio.name}</TableCell>
-                <TableCell>{convenio.registrationNumber}</TableCell>
-                <TableCell>
-                  <Badge variant={convenio.active ? "default" : "secondary"} className="cursor-pointer" onClick={() => toggleActive(convenio)}>
-                    {convenio.active ? "Ativo" : "Inativo"}
-                  </Badge>
-                </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button variant="ghost" size="icon" onClick={() => handleEdit(convenio)}>
                     <Pencil className="h-4 w-4" />

@@ -5,9 +5,11 @@ import { appointmentRoutes } from './appointment';
 import { patientRoutes } from './patient';
 import { doctorRoutes } from './doctor';
 import { adminRoutes } from './admin';
+import { doctorsRoutes } from './doctors';
 
 const publicRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.register(authRoutes, { prefix: '/auth' });
+  fastify.register(doctorsRoutes, { prefix: '/doctors' });
 };
 
 const privateRoutes: FastifyPluginAsync = async (fastify) => {

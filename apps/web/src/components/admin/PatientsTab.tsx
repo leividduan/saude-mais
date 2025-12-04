@@ -6,9 +6,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { Patient } from "@/data/mockData";
-import { getPatients, addPatient, updatePatient, deletePatient } from "@/services/dataService";
+import api from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+
+interface Patient {
+  id: string;
+  name: string;
+  cpf: string;
+  phone: string;
+}
 
 export const PatientsTab = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -17,8 +23,17 @@ export const PatientsTab = () => {
   const [formData, setFormData] = useState({ name: "", cpf: "", phone: "" });
   const { toast } = useToast();
 
+  const fetchPatients = async () => {
+    try {
+      const response = await api.get("/admin/patients");
+      setPatients(response.data);
+    } catch (error) {
+      toast({ title: "Erro ao buscar pacientes" });
+    }
+  };
+
   useEffect(() => {
-    setPatients(getPatients());
+    fetchPatients();
   }, []);
 
   const resetForm = () => {
@@ -26,20 +41,23 @@ export const PatientsTab = () => {
     setEditingPatient(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingPatient) {
-      updatePatient(editingPatient.id, formData);
-      toast({ title: "Paciente atualizado com sucesso!" });
-    } else {
-      addPatient(formData);
-      toast({ title: "Paciente cadastrado com sucesso!" });
+    try {
+      if (editingPatient) {
+        await api.put(`/admin/patients/${editingPatient.id}`, formData);
+        toast({ title: "Paciente atualizado com sucesso!" });
+      } else {
+        await api.post("/admin/patients", formData);
+        toast({ title: "Paciente cadastrado com sucesso!" });
+      }
+      fetchPatients();
+      setIsOpen(false);
+      resetForm();
+    } catch (error) {
+      toast({ title: "Erro ao salvar paciente" });
     }
-
-    setPatients(getPatients());
-    setIsOpen(false);
-    resetForm();
   };
 
   const handleEdit = (patient: Patient) => {
@@ -48,10 +66,14 @@ export const PatientsTab = () => {
     setIsOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    deletePatient(id);
-    setPatients(getPatients());
-    toast({ title: "Paciente removido com sucesso!" });
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/admin/patients/${id}`);
+      fetchPatients();
+      toast({ title: "Paciente removido com sucesso!" });
+    } catch (error) {
+      toast({ title: "Erro ao remover paciente" });
+    }
   };
 
   return (

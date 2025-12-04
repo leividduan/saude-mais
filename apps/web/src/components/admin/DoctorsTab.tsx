@@ -7,48 +7,59 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { Doctor, specialties } from "@/data/mockData";
-import { getDoctors, addDoctor, updateDoctor, deleteDoctor } from "@/services/dataService";
+import { specialties } from "@/data/specialties";
+import api from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+
+interface Doctor {
+  id: string;
+  name: string;
+  crm: string;
+  specialty: string;
+}
 
 export const DoctorsTab = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
-  const [formData, setFormData] = useState({ name: "", crm: "", specialty: "", experience: "", rating: "5" });
+  const [formData, setFormData] = useState({ name: "", crm: "", specialty: "" });
   const { toast } = useToast();
 
+  const fetchDoctors = async () => {
+    try {
+      const response = await api.get("/admin/doctors");
+      setDoctors(response.data);
+    } catch (error) {
+      toast({ title: "Erro ao buscar médicos" });
+    }
+  };
+
   useEffect(() => {
-    setDoctors(getDoctors());
+    fetchDoctors();
   }, []);
 
   const resetForm = () => {
-    setFormData({ name: "", crm: "", specialty: "", experience: "", rating: "5" });
+    setFormData({ name: "", crm: "", specialty: "" });
     setEditingDoctor(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const doctorData = {
-      name: formData.name,
-      crm: formData.crm,
-      specialty: formData.specialty,
-      experience: formData.experience,
-      rating: parseFloat(formData.rating),
-      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.name.replace(/\s/g, "")}`,
-    };
-
-    if (editingDoctor) {
-      updateDoctor(editingDoctor.id, doctorData);
-      toast({ title: "Médico atualizado com sucesso!" });
-    } else {
-      addDoctor(doctorData);
-      toast({ title: "Médico cadastrado com sucesso!" });
+    
+    try {
+      if (editingDoctor) {
+        await api.put(`/admin/doctors/${editingDoctor.id}`, formData);
+        toast({ title: "Médico atualizado com sucesso!" });
+      } else {
+        await api.post("/admin/doctors", formData);
+        toast({ title: "Médico cadastrado com sucesso!" });
+      }
+      fetchDoctors();
+      setIsOpen(false);
+      resetForm();
+    } catch (error) {
+      toast({ title: "Erro ao salvar médico" });
     }
-
-    setDoctors(getDoctors());
-    setIsOpen(false);
-    resetForm();
   };
 
   const handleEdit = (doctor: Doctor) => {
@@ -57,16 +68,18 @@ export const DoctorsTab = () => {
       name: doctor.name,
       crm: doctor.crm,
       specialty: doctor.specialty,
-      experience: doctor.experience,
-      rating: doctor.rating.toString(),
     });
     setIsOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    deleteDoctor(id);
-    setDoctors(getDoctors());
-    toast({ title: "Médico removido com sucesso!" });
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/admin/doctors/${id}`);
+      fetchDoctors();
+      toast({ title: "Médico removido com sucesso!" });
+    } catch (error) {
+      toast({ title: "Erro ao remover médico" });
+    }
   };
 
   const getSpecialtyName = (id: string) => {
@@ -105,14 +118,6 @@ export const DoctorsTab = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="experience">Experiência</Label>
-                <Input id="experience" value={formData.experience} onChange={(e) => setFormData({ ...formData, experience: e.target.value })} placeholder="Ex: 10 anos de experiência" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="rating">Avaliação</Label>
-                <Input id="rating" type="number" min="0" max="5" step="0.1" value={formData.rating} onChange={(e) => setFormData({ ...formData, rating: e.target.value })} required />
-              </div>
               <Button type="submit" className="w-full">{editingDoctor ? "Salvar" : "Cadastrar"}</Button>
             </form>
           </DialogContent>
@@ -126,8 +131,6 @@ export const DoctorsTab = () => {
               <TableHead>Nome</TableHead>
               <TableHead>CRM</TableHead>
               <TableHead>Especialidade</TableHead>
-              <TableHead>Experiência</TableHead>
-              <TableHead>Avaliação</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -137,8 +140,6 @@ export const DoctorsTab = () => {
                 <TableCell className="font-medium">{doctor.name}</TableCell>
                 <TableCell>{doctor.crm}</TableCell>
                 <TableCell>{getSpecialtyName(doctor.specialty)}</TableCell>
-                <TableCell>{doctor.experience}</TableCell>
-                <TableCell>{doctor.rating}</TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button variant="ghost" size="icon" onClick={() => handleEdit(doctor)}>
                     <Pencil className="h-4 w-4" />

@@ -1,6 +1,9 @@
 {
   "name": "@saude/api",
   "version": "1.0.0",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "private": true,
   "main": "index.js",
   "scripts": {

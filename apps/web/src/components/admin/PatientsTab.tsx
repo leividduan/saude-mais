@@ -22,7 +22,7 @@ interface Patient {
 export const PatientsTab = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
-  const [formData, setFormData] = useState({ name: "", cpf: "", phone: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", cpf: "", phone: "" });
   const { toast } = useToast();
 
   const { data: patients = [] } = usePatientsQuery();
@@ -31,7 +31,7 @@ export const PatientsTab = () => {
   const deletePatientMutation = useDeletePatientMutation();
 
   const resetForm = () => {
-    setFormData({ name: "", cpf: "", phone: "" });
+    setFormData({ name: "", email: "", password: "", cpf: "", phone: "" });
     setEditingPatient(null);
   };
 
@@ -55,7 +55,13 @@ export const PatientsTab = () => {
 
   const handleEdit = (patient: Patient) => {
     setEditingPatient(patient);
-    setFormData({ name: patient.name, cpf: patient.cpf, phone: patient.phone });
+    setFormData({ 
+      name: patient.name, 
+      email: "", // Email não é editável
+      password: "", // Senha não é editável
+      cpf: patient.cpf, 
+      phone: patient.phone 
+    });
     setIsOpen(true);
   };
 
@@ -85,6 +91,16 @@ export const PatientsTab = () => {
                 <Label htmlFor="name">Nome</Label>
                 <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required={!editingPatient} disabled={!!editingPatient} />
+              </div>
+              {!editingPatient && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input id="password" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required minLength={6} />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="cpf">CPF</Label>
                 <Input id="cpf" value={formData.cpf} onChange={(e) => setFormData({ ...formData, cpf: e.target.value })} placeholder="000.000.000-00" required />

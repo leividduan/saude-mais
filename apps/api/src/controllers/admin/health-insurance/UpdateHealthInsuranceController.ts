@@ -35,10 +35,12 @@ export class UpdateHealthInsuranceController {
       }
     }
 
-    await db.healthInsurance.update({
-      where: { id },
-      data: { name },
-    });
+    if (name) {
+      await db.healthInsurance.update({
+        where: { id },
+        data: { name },
+      });
+    }
 
     return reply.status(204).send();
   }

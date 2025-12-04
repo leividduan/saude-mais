@@ -17,6 +17,7 @@ import { useDeleteDoctorMutation } from "@/hooks/mutations/useDeleteDoctorMutati
 interface Doctor {
   id: string;
   name: string;
+  email: string;
   crm: string;
   specialty: string;
 }
@@ -24,7 +25,7 @@ interface Doctor {
 export const DoctorsTab = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
-  const [formData, setFormData] = useState({ name: "", crm: "", specialty: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", crm: "", specialty: "" });
   const { toast } = useToast();
 
   const { data: doctors = [] } = useAdminDoctorsQuery();
@@ -33,7 +34,7 @@ export const DoctorsTab = () => {
   const deleteDoctorMutation = useDeleteDoctorMutation();
 
   const resetForm = () => {
-    setFormData({ name: "", crm: "", specialty: "" });
+    setFormData({ name: "", email: "", password: "", crm: "", specialty: "" });
     setEditingDoctor(null);
   };
 
@@ -59,6 +60,8 @@ export const DoctorsTab = () => {
     setEditingDoctor(doctor);
     setFormData({
       name: doctor.name,
+      email: doctor.email, // Email não é editável
+      password: "", // Senha não é editável
       crm: doctor.crm,
       specialty: doctor.specialty,
     });
@@ -95,6 +98,16 @@ export const DoctorsTab = () => {
                 <Label htmlFor="name">Nome</Label>
                 <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required={!editingDoctor} disabled={!!editingDoctor} />
+              </div>
+              {!editingDoctor && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input id="password" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required minLength={6} />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="crm">CRM</Label>
                 <Input id="crm" value={formData.crm} onChange={(e) => setFormData({ ...formData, crm: e.target.value })} required />

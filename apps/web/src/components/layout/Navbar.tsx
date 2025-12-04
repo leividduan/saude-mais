@@ -22,6 +22,7 @@ export const Navbar = () => {
                   to="/agendar"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                   activeClassName="text-primary font-medium"
+                  roles={['patient']}
                 >
                   Agendar
                 </NavLink>
@@ -29,27 +30,26 @@ export const Navbar = () => {
                   to="/minhas-consultas"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                   activeClassName="text-primary font-medium"
+                  roles={['patient']}
                 >
                   Minhas Consultas
                 </NavLink>
-                {user.role === 'admin' && (
-                  <NavLink
-                    to="/admin"
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    activeClassName="text-primary font-medium"
-                  >
-                    Administração
-                  </NavLink>
-                )}
-                {user.role === 'doctor' && (
-                  <NavLink
-                    to="/agenda-medico"
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    activeClassName="text-primary font-medium"
-                  >
-                    Minha Agenda
-                  </NavLink>
-                )}
+                <NavLink
+                  to="/admin"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  activeClassName="text-primary font-medium"
+                  roles={['admin']}
+                >
+                  Administração
+                </NavLink>
+                <NavLink
+                  to="/agenda-medico"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  activeClassName="text-primary font-medium"
+                  roles={['doctor']}
+                >
+                  Minha Agenda
+                </NavLink>
               </>
             )}
           </div>

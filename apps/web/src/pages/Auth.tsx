@@ -1,6 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -10,39 +15,47 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
-  const navigate = useNavigate();
-  const { login, signup, isAuthenticated } = useAuth();
+  const { login, signup } = useAuth();
   const { toast } = useToast();
-  
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const [signupData, setSignupData] = useState({ name: "", email: "", password: "" });
 
-  if (isAuthenticated) {
-    navigate("/agendar");
-    return null;
-  }
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [signupData, setSignupData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const result = await login(loginData.email, loginData.password);
-    
+
     if (result.success) {
       toast({ title: "Login realizado com sucesso!" });
-      navigate("/agendar");
     } else {
-      toast({ title: "Erro no login", description: result.error, variant: "destructive" });
+      toast({
+        title: "Erro no login",
+        description: result.error,
+        variant: "destructive",
+      });
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await signup(signupData.name, signupData.email, signupData.password);
-    
+    const result = await signup(
+      signupData.name,
+      signupData.email,
+      signupData.password
+    );
+
     if (result.success) {
       toast({ title: "Cadastro realizado com sucesso!" });
-      navigate("/agendar");
     } else {
-      toast({ title: "Erro no cadastro", description: result.error, variant: "destructive" });
+      toast({
+        title: "Erro no cadastro",
+        description: result.error,
+        variant: "destructive",
+      });
     }
   };
 
@@ -56,9 +69,7 @@ const Auth = () => {
             </div>
           </div>
           <CardTitle className="text-2xl">Clínica Saúde+</CardTitle>
-          <CardDescription>
-            Acesse sua conta ou crie uma nova
-          </CardDescription>
+          <CardDescription>Acesse sua conta ou crie uma nova</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
@@ -66,7 +77,7 @@ const Auth = () => {
               <TabsTrigger value="login">Entrar</TabsTrigger>
               <TabsTrigger value="signup">Cadastrar</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
@@ -76,7 +87,9 @@ const Auth = () => {
                     type="email"
                     placeholder="seu@email.com"
                     value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    onChange={(e) =>
+                      setLoginData({ ...loginData, email: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -87,7 +100,9 @@ const Auth = () => {
                     type="password"
                     placeholder="••••••••"
                     value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    onChange={(e) =>
+                      setLoginData({ ...loginData, password: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -96,7 +111,7 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
@@ -106,7 +121,9 @@ const Auth = () => {
                     type="text"
                     placeholder="João Silva"
                     value={signupData.name}
-                    onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
+                    onChange={(e) =>
+                      setSignupData({ ...signupData, name: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -117,7 +134,9 @@ const Auth = () => {
                     type="email"
                     placeholder="seu@email.com"
                     value={signupData.email}
-                    onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                    onChange={(e) =>
+                      setSignupData({ ...signupData, email: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -128,7 +147,12 @@ const Auth = () => {
                     type="password"
                     placeholder="••••••••"
                     value={signupData.password}
-                    onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                    onChange={(e) =>
+                      setSignupData({
+                        ...signupData,
+                        password: e.target.value,
+                      })
+                    }
                     required
                   />
                 </div>

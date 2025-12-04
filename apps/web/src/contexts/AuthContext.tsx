@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import api from '@/services/api';
 
-type UserRole = "admin" | "doctor" | "patient";
+export type UserRole = "admin" | "doctor" | "patient";
 
 interface User {
   id: string;
@@ -46,13 +47,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await api.post('/auth/signin', { email, password });
       
-      const { token, ...userData } = data;
+      const { accessToken, user } = data;
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      localStorage.setItem('token', accessToken);
+      localStorage.setItem('user', JSON.stringify(user));
+      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       
-      setUser(userData);
+      setUser({...user, role: user.role.toLowerCase() as UserRole});
 
       return { success: true };
     } catch (error: any) {

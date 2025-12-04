@@ -17,6 +17,9 @@ export class SignInController {
       select: {
         id: true,
         password: true,
+        role: true,
+        name: true,
+        email: true,
       },
     });
 
@@ -28,6 +31,6 @@ export class SignInController {
       sub: user.id,
     });
 
-    return reply.status(201).send({ accessToken });
+    return reply.status(201).send({ accessToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   }
 }

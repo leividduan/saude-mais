@@ -1,15 +1,36 @@
-import { NavLink as RouterNavLink, NavLinkProps } from "react-router-dom";
+import {
+  NavLink as RouterNavLink,
+  NavLinkProps as RouterNavLinkProps,
+} from "react-router-dom";
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth, UserRole } from "@/contexts/AuthContext";
 
-interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
+interface NavLinkProps extends Omit<RouterNavLinkProps, "className"> {
   className?: string;
   activeClassName?: string;
   pendingClassName?: string;
+  roles?: UserRole[];
 }
 
-const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
-  ({ className, activeClassName, pendingClassName, to, ...props }, ref) => {
+const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
+  (
+    {
+      className,
+      activeClassName,
+      pendingClassName,
+      to,
+      roles,
+      ...props
+    },
+    ref
+  ) => {
+    const { user } = useAuth();
+
+    if (roles && !roles.includes(user?.role as UserRole)) {
+      return null;
+    }
+
     return (
       <RouterNavLink
         ref={ref}
@@ -20,7 +41,7 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
         {...props}
       />
     );
-  },
+  }
 );
 
 NavLink.displayName = "NavLink";

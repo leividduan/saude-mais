@@ -3,8 +3,13 @@ import Fastify from 'fastify';
 import { routes } from './routes';
 import { ZodError } from 'zod';
 import fastifyJwt from '@fastify/jwt';
+import cors from '@fastify/cors';
 
 const fastify = Fastify();
+
+fastify.register(cors, {
+  origin: true // Em produção, troque por http://seu-dominio.com
+});
 
 fastify.register(routes);
 fastify.register(fastifyJwt, {

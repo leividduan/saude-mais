@@ -15,6 +15,7 @@ import { useDeletePatientMutation } from "@/hooks/mutations/useDeletePatientMuta
 interface Patient {
   id: string;
   name: string;
+  email: string;
   cpf: string;
   phone: string;
 }
@@ -57,7 +58,7 @@ export const PatientsTab = () => {
     setEditingPatient(patient);
     setFormData({ 
       name: patient.name, 
-      email: "", // Email não é editável
+      email: patient.email, // Email não é editável
       password: "", // Senha não é editável
       cpf: patient.cpf, 
       phone: patient.phone 
